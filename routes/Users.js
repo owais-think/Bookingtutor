@@ -4,6 +4,9 @@ const router=express.Router();
 const Otp=require('../models/Otp')
 const checkauthorization=require('../checkauthorization')
 const Users=require('../models/Users');
+const Tutors = require('../models/Tutors');
+const Booking = require('../models/Booking');
+
 
 
 //get all user
@@ -22,7 +25,8 @@ router.get('/viewusers',(req,res)=>{
 
 //user signup
 router.post('/createuser',(req,res)=>{
-            
+         
+
                 let otpno=Math.floor(100000 + Math.random() * 900000)
                 console.log(otpno)
 
@@ -57,8 +61,14 @@ router.post('/createuser',(req,res)=>{
 //Delete User
 router.delete('/deleteuser',(req,res)=>{
     const id=req.body.id;
-    const deletespecific=Users.findByIdAndDelete(id)
-    res.json(deletespecific)
+   Users.findByIdAndDelete(id,(err,doc)=>{
+       if(err){
+           return res.json({message:"Failed",err})
+       }
+       else{
+           return res.json({message:"User Deleted",doc})
+       }
+   })
 })
 
 //View otp
@@ -129,7 +139,57 @@ router.get('/viewmyprofile',(req,res)=>{
 })
 
 
+router.put('/scheduleaday',(req,res)=>{
+        Tutors.findOneAndUpdate({"_id":req.body.tutorid,"Schedule._id":req.body.slotid},{"Schedule.$.status":req.body.status,"Schedule.$.day":req.body.day,$push:{"Schedule.$.Time":req.body.time,"Schedule.$.userids":req.body.userid}},{new:true})
+        .exec((err,tutor)=>{
+            if(err){
+                return res.json({message:"Failed",err})
+            }
+            else{
+                let data={
+                    tutorid:req.body.tutorid,
+                    userid:req.body.userid,
+                    slotid:req.body.slotid,
+                    status:req.body.status,
+                    day:req.body.day,
+                    time:req.body.time
+                }
+                Booking.create(data,(err,doc)=>{
+                    if(err){
+                        return res.json({message:"Failed",err})
+                    }
+                    else{
+                        return res.json({message:"Success",tutor,doc})
+                    }
+                })
 
+                // return res.json({message:"Success",tutor})
+            }
+        })
+        
+})
 
+router.get('/filtertutors',(req,res)=>{
+    Tutors.find({$and:[{language:req.body.language},{Country:req.body.country},{priceperhour:req.body.priceperhour},{availability:{$in:req.body.availability}}]},(err,docs)=>{
+        if(err){
+            return res.json({message:"Failed",err})
+        }
+        else{
+            return res.json({message:"Success",docs})
+        }
+    })
+})
   
+
+router.get('/searchtutor',(req,res)=>{
+    var regex=new RegExp(req.body.name,'i')
+    Tutors.find({name:regex},(err,docs)=>{
+        if(err){
+            return res.json({message:"Failed",err})
+        }
+        else{
+            return res.json({message:"Tutors",docs})
+        }
+    })
+})
 module.exports=router;

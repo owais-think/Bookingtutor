@@ -2,8 +2,9 @@ const mongoose=require('mongoose')
 const express=require('express');
 const router=express.Router();
 const Otp=require('../models/Otp')
-const tutorcheckauthorization=require('../checkauthorization')
+const tutorcheckauthorization=require('../tutorcheckauthorization')
 const Tutors=require('../models/Tutors');
+
 
 
 //get all user
@@ -22,9 +23,21 @@ router.get('/viewTutors',(req,res)=>{
 
 //user signup
 router.post('/createtutor',(req,res)=>{
+    let i;
+    let days=[]
+    for (i = 1; i <=30; i++) {
+        
+        Schedule={slotnumber:i}
+        days.push(Schedule)
+        
+    }
             
                 let otpno=Math.floor(100000 + Math.random() * 900000)
                 console.log(otpno)
+
+                // let time={
+                //     tutorid:req.body.tutorid
+                // }
 
                 let otp={
                     email:req.body.email,
@@ -33,9 +46,14 @@ router.post('/createtutor',(req,res)=>{
                 let data={
                     email:req.body.email,
                     name:req.body.name,
-                    phnumber:req.body.phnumber,
                     password:req.body.password,
-                    city:req.body.city
+                    phnumber:req.body.phnumber,
+                    city:req.body.city,
+                    language:req.body.language,
+                    Country:req.body.country,
+                    priceperhour:req.body.priceperhour,
+                    availability:req.body.availability,
+                    Schedule:days,
                 }
                 Otp.create(otp,(err,doc)=>{
                     if(err){
@@ -47,18 +65,35 @@ router.post('/createtutor',(req,res)=>{
                                 return res.json({message:"Failed",err})
                             }
                             else{
-                                return res.json({message:"Successfull",docc})
+                                let dataa={
+                                    tutorid:docc._id
+                                }
+                                Tutors.findByIdAndUpdate(dataa.tutorid,{"Time.tutorid":dataa.tutorid},{new:true},(err,time)=>{
+                                    if(err){
+                                        return res.json({message:"Failed",err})
+                                    }
+                                    else{
+                                        return res.json({message:"Success",time})
+                                    }
+                                })
+                                // return res.json({message:"Successfull",docc})
                             }
                         })
                     }
                 })      
     })
  
-//Delete User
+//Delete Tutor
 router.delete('/deletetutor',(req,res)=>{
     const id=req.body.id;
-    const deletespecific=Tutors.findByIdAndDelete(id)
-    res.json(deletespecific)
+   Tutors.findByIdAndDelete(id,(err,doc)=>{
+       if(err){
+           return res.json({message:"Failed",err})
+       }
+       else{
+           return res.json({message:"Tutor Deleted",doc})
+       }
+   })
 })
 
 //View otp
@@ -129,7 +164,59 @@ router.get('/viewmyprofile',(req,res)=>{
 })
 
 
+router.post('/createschedule',(req,res)=>{
+    Tutors.findOne({_id:req.body.id},(err,doc)=>{
+        if(err){
+            return res.json({message:"Failed",err})
+        }
+        else{
+           let _id=req.body.id
+           doc.availability.forEach(a=>{
+            let i   
+            for(i=1;i<=4;i++){
 
+            }
+           })
+
+
+            // let _id=req.body.id
+            // let i
+            // for(i=0;i<=3;i++){
+            //     doc.availability.forEach(a=>{
+            //         let data={
+            //             status:"not booked",
+            //             day:a,
+            //             time:"3:00"
+            //         }
+            //             console.log(a)
+            //             Tutors.findByIdAndUpdate(_id,{$push:{Schedule:data}},{new:true},(err,tutor)=>{
+            //                 if(err){
+            //                     return res.json({message:"Failed",err})
+            //                 }
+            //                 else{
+            //                     console.log(tutor)
+            //                 }
+            //             })
+                        
+            //             })
+            //         }
+                  
+            }
+          
+        
+    })
+})
+
+router.get('/viewtutortimings',(req,res)=>{
+    Tutors.find((err,docs)=>{
+    if(err){
+        return res.json({message:"Failed",err})
+    }
+    else{
+        return res.json({message:"Sucess",docs})
+    }
+    })
+})
 
   
 module.exports=router;
