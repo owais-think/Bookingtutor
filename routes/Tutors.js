@@ -4,7 +4,7 @@ const router=express.Router();
 const Otp=require('../models/Otp')
 const tutorcheckauthorization=require('../tutorcheckauthorization')
 const Tutors=require('../models/Tutors');
-
+const data=require('../dant.json')
 
 
 //get all user
@@ -31,7 +31,7 @@ router.post('/createtutor',(req,res)=>{
         days.push(Schedule)
         
     }
-            
+           
                 let otpno=Math.floor(100000 + Math.random() * 900000)
                 console.log(otpno)
 
@@ -218,5 +218,75 @@ router.get('/viewtutortimings',(req,res)=>{
     })
 })
 
-  
+router.post('/bulktutors',(req,res)=>{
+    data.forEach(dat=>{
+        let days=["monday","tuesday","wednesday","thursday","friday"]
+         availability=days.slice(0,Math.floor(Math.random() * 6) + 1)
+        console.log(availability)
+        let i;
+        let dayss=[]
+        for (i = 1; i <=30; i++) {
+            
+            Schedule={slotnumber:i}
+            dayss.push(Schedule)
+            
+        }
+        let data={
+            email:dat.email,
+            name:dat.name,
+            password:dat.password,
+            phnumber:dat.phnumber,
+            city:dat.city,
+            language:dat.language,
+            Country:dat.country,
+            priceperhour:dat.priceperhour,
+            availability:availability,
+            Schedule:dayss,
+        }
+     
+           
+                let otpno=Math.floor(100000 + Math.random() * 900000)
+                console.log(otpno)
+
+                // let time={
+                //     tutorid:req.body.tutorid
+                // }
+
+                let otp={
+                    email:dat.email,
+                    otpcode:otpno
+                }
+                
+                Otp.create(otp,(err,doc)=>{
+                    if(err){
+                        return res.json({message:"Failed",err})
+                    }
+                    else{
+                        Tutors.create(data,(err,docc)=>{
+                            if(err){
+                                return res.json({message:"Failed",err})
+                            }
+                            else{
+                                let dataa={
+                                    tutorid:docc._id
+                                }
+                                Tutors.findByIdAndUpdate(dataa.tutorid,{"Time.tutorid":dataa.tutorid},{new:true},(err,time)=>{
+                                    if(err){
+                                        return res.json({message:"Failed",err})
+                                    }
+                                    else{
+                                        setTimeout(() => {
+                                            return res.json({message:"Success",time})
+                                        }, 9000);
+                                    }
+                                })
+                                // return res.json({message:"Successfull",docc})
+                            }
+                        })
+                        
+                    }
+                })      
+
+    })
+})
 module.exports=router;

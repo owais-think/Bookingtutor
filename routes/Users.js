@@ -182,7 +182,7 @@ router.get('/filtertutors',(req,res)=>{
   
 
 router.get('/searchtutor',(req,res)=>{
-    var regex=new RegExp(req.body.name,'i')
+    var regex=new RegExp(req.body.name,'i') //incase sensitive hai ok
     Tutors.find({name:regex},(err,docs)=>{
         if(err){
             return res.json({message:"Failed",err})
@@ -191,5 +191,16 @@ router.get('/searchtutor',(req,res)=>{
             return res.json({message:"Tutors",docs})
         }
     })
+})
+
+router.put('/bulkscheduleaday',(req,res)=>{
+    let data={
+    userid:req.body.userid,
+    tutorid,
+    slotid,
+    status,
+    time,
+    day 
+    }
 })
 module.exports=router;
